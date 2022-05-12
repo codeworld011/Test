@@ -1,70 +1,69 @@
-import React,{useState} from 'react';
-import { View, Image, Button, Platform } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import image from '../backendimg/models/image';
+import React, { useState } from "react";
+import { View, Image, Button, Text, TouchableOpacity } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 
-
-const SERVER_URL = 'http://localhost:8000';
-
+import Circle from "./components/Circle";
+import { AntDesign } from "@expo/vector-icons";
 
 const App = () => {
-  const [photo, setPhoto] = useState(null);
-
-
-  const handleChoosePhoto = async () => {
+  const [image, setImage] = useState({ url: "" });
+  const [uploadImage, setuploadImage] = useState("");
+  const handUpload = async() => {
+    let permissonResult =
     await ImagePicker.requestMediaLibraryPermissionsAsync();
-      // console.log(response);
-      const result = await ImagePicker.launchImageLibraryAsync();
-
-    // Explore the result
-    console.log(result);
-
-    if (!result.cancelled) {
-      setPhoto(result.uri);
-      console.log(result.uri);
+    if (permissonResult.granted === false){
+      alert("camera access is required");
+      return;
     }
-  
-
-  };
- 
-
-
-  const handleUploadPhoto = async() => {
-   // if (singleFile != null) {
-      //If file selected then create FormData
-     // const fileToUpload = singleFile;
-     const formdata = new FormData();
-  formdata.append('workImage', {
-    name: image.filename,
-  })
-    //}
-   const res = await fetch(`${SERVER_URL}/api/upload`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'multipart/form-data; ',
-      },
+    //get image from image
+    let pickerResult = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      base64: true,
     })
-    const responseJson = await res.json();
-    if (responseJson.status == 1) {
-      alert('Upload Successful');
-    }
-        
-      
-     
+   // console.log("result", pickerResult)
+   if (pickerResult.cancelled === true){
+     return;
+   }
+   // for preview
+   let base64Image = `data:image/jpg;base64,${pickerResult.base64}`;
+   setuploadImage(base64Image)
+   // saving in mongo
   };
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      {photo && (
-      <View>
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+      <Circle>
+        {image && image.url ? (
           <Image
-            source={{ uri: photo.uri }}
-            style={{ width: 300, height: 300 }}/>
-          
-          <Button title="Upload Photo" onPress={handleUploadPhoto} />
-      </View>
+            source={{ uri: image.url }}
+            style={{ width: 200, height: 200, marginVertical: 20 }}
+          />
+        ) : uploadImage ?  <Image
+        source={{ uri: uploadImage }}
+        style={{ width: 200, height: 200, marginVertical: 20, borderRadius: 100, }}
+      /> :   (
+          <TouchableOpacity onPress={handUpload}>
+            <AntDesign name="user" size={24} color="black" />
+          </TouchableOpacity>
+        )}
+      </Circle>
+      {image && image.url ? (
+        <TouchableOpacity onPress={handUpload}>
+          <AntDesign
+            name="user"
+            size={24}
+            color="black"
+            style={{
+              marginTop: -5,
+              marginBottom: 10,
+              alignSelf: center,
+            }}
+          />
+        </TouchableOpacity>
+      ) : (
+        <View></View>
       )}
-      <Button title="Choose Photo" onPress={handleChoosePhoto} />
     </View>
   );
 };
