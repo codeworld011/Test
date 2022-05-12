@@ -6,6 +6,7 @@ import Circle from "./components/Circle";
 import { AntDesign } from "@expo/vector-icons";
 
 const App = () => {
+  const host = "http://localhost:8000";
   const [image, setImage] = useState({ url: "" });
   const [uploadImage, setuploadImage] = useState("");
   const handUpload = async() => {
@@ -21,7 +22,7 @@ const App = () => {
       aspect: [4, 3],
       base64: true,
     })
-   // console.log("result", pickerResult)
+   //console.log("result", pickerResult)
    if (pickerResult.cancelled === true){
      return;
    }
@@ -29,7 +30,31 @@ const App = () => {
    let base64Image = `data:image/jpg;base64,${pickerResult.base64}`;
    setuploadImage(base64Image)
    // saving in mongo
-  };
+  
+   const fetchImage = async () =>{
+    const data = new FormData();
+data.append('name', 'workImage');
+    let res = await fetch(`${host}/api/upload`,
+      {
+        method: 'POST',
+       
+        headers: {
+          'Content-Type': 'multipart/form-data; ',
+        },
+      }
+    
+    );
+    console.log(res)
+
+    let responseJson = await res.json();
+      if (responseJson.status == 1) {
+        alert('Upload Successful');
+      }
+    } 
+  
+   // console.log(fetchImage)
+    fetchImage()
+};
 
   return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
